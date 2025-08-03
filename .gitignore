@@ -1,0 +1,25 @@
+# Diretórios e arquivos do Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Ambientes virtuais
+venv/
+.env/
+
+# Arquivos temporários de IDEs e sistemas operacionais
+*.log
+*.tmp
+*.swp
+*.bak
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Outputs
+output/
+
+# Arquivos de cache do matplotlib
+.matplotlib/
