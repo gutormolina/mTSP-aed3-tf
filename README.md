@@ -19,10 +19,10 @@ mTSP-aed3-tf/
 │   ├── grafo.py                   # Funções de grafo e visualização
 │   ├── utils.py                   # Funções auxiliares (distância, custo, etc.)
 ├── data/
-│   ├── caso_01.csv                # Pontos de coleta
-│   └── caso_01_adjacencia.csv     # Conexões (arestas) entre os pontos
+│   ├── caso.csv                   # Pontos de coleta
+│   └── caso_adjacencia.csv        # Conexões (arestas) entre os pontos
 ├── output/
-│   └── caso_01/                   # Resultados gerados (imagens e resumo)
+│   └── caso/                      # Resultados gerados (imagens e resumo)
 ├── main.py                        # Script principal de execução
 └── requirements.txt               # Dependências
 ```
