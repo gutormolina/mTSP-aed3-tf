@@ -34,24 +34,18 @@ def dijkstra(grafo, inicio, fim):
 
 def calcular_custo(solucao, capacidade_maxima, grafo):
     custo_total = 0
-    penalidade = 0
 
     for rota in solucao:
-        carga_total = sum(p.get('carga', 1) for p in rota)
 
         for i in range(len(rota) - 1):
             origem = rota[i]['id']
             destino = rota[i+1]['id']
             dist = dijkstra(grafo, origem, destino)
             if dist == float('inf'):
-                penalidade += 10000  # rota inválida
-            else:
-                custo_total += dist
+                return float('inf') # rota inválida
+            custo_total += dist
 
-        if carga_total > capacidade_maxima:
-            penalidade += (carga_total - capacidade_maxima) * 1000
-
-    return custo_total + penalidade
+    return custo_total
 
 def rota_valida(rota, adjacencias):
     for i in range(len(rota) - 1):
