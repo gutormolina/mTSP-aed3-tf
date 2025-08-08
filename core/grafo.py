@@ -1,33 +1,37 @@
-import pandas as pd
 import matplotlib.pyplot as plt
 import math
 import os
 
 def carregar_pontos(path):
-    df = pd.read_csv(path)
-    if 'carga' not in df.columns:
-        df['carga'] = 1  # atribui carga padrão
-    return df[['id', 'x', 'y', 'carga']].to_dict(orient='records')
+    with open(path, 'r') as f:
+        linhas = f.readlines()[1:]  # Pula o cabeçalho
+        pontos = []
+        for linha in linhas:
+            id_p, x, y, carga = linha.strip().split()
+            pontos.append({
+                'id': int(id_p),
+                'x': float(x),
+                'y': float(y),
+                'carga': int(carga)
+            })
+    return pontos
 
 def carregar_adjacencias(path, pontos):
-    df = pd.read_csv(path)
-    # Map id -> ponto
     pontos_dict = {p['id']: p for p in pontos}
     adj = {}
-    for _, row in df.iterrows():
-        a, b = int(row['from_id']), int(row['to_id'])
-        p_a, p_b = pontos_dict[a], pontos_dict[b]
-        dx = p_b['x'] - p_a['x']
-        dy = p_b['y'] - p_a['y']
-        dist = math.sqrt(dx*dx + dy*dy)
-        adj.setdefault(a, {})[b] = dist
-        adj.setdefault(b, {})[a] = dist
+    with open(path, 'r') as f:
+        for linha in f.readlines()[1:]:  # Pula cabeçalho
+            a, b = map(int, linha.strip().split())
+            p_a, p_b = pontos_dict[a], pontos_dict[b]
+            dx = p_b['x'] - p_a['x']
+            dy = p_b['y'] - p_a['y']
+            dist = math.sqrt(dx*dx + dy*dy)
+            adj.setdefault(a, {})[b] = dist
+            adj.setdefault(b, {})[a] = dist  # Grafo não-direcionado
     return adj
 
 
 def plotar_pontos(pontos, rotas=None, adjacencias=None, salvar_em=None):
-    import matplotlib.pyplot as plt
-    import os
 
     plt.figure(figsize=(8, 6))
 
@@ -59,3 +63,4 @@ def plotar_pontos(pontos, rotas=None, adjacencias=None, salvar_em=None):
         plt.savefig(os.path.join(salvar_em, "rotas_geradas.png"))
     else:
         plt.savefig("output/rotas_geradas.png")
+    plt.close()
