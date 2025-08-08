@@ -55,7 +55,7 @@ pip install -r requirements.txt
 4. Execute o projeto:
 
 ```bash
-python main.py
+python main.py <caso> -a <algoritmo>
 ```
 
 5. Os resultados (rotas e resumo) serão gerados na pasta `output`.
@@ -70,8 +70,8 @@ Os principais parâmetros do algoritmo podem ser ajustados diretamente no `main.
 num_veiculos = 2
 capacidade_maxima = 5
 temperatura_inicial = 1000
-taxa_resfriamento = 0.995
-iter_max = 5000
+taxa_resfriamento = 0.95
+iter_max = 10000
 ```
 
 ---
