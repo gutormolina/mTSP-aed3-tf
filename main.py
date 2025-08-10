@@ -1,10 +1,11 @@
-from core.grafo import carregar_pontos, plotar_pontos, carregar_adjacencias
+from core.grafo import carregar_pontos, plotar_pontos, carregar_adjacencias, somar_cargas
 from algoritmos.simulated_annealing import simulated_annealing
 from algoritmos.clarke_wright import clarke_wright
 from core.utils import calcular_distancia_total
 import os
 import time
 import argparse
+import math
 
 def main():
     parser = argparse.ArgumentParser(description='Otimizador de Rotas de Coleta')
@@ -14,17 +15,18 @@ def main():
     args = parser.parse_args()
   
     caso_nome = args.caso
-    entrada_path = f"data/{caso_nome}.txt"
-    adjacencia_path = f"data/{caso_nome}_adjacencia.txt"
+    entrada_path = f"data/{caso_nome}.csv"
+    adjacencia_path = f"data/{caso_nome}_adjacencia.csv"
     saida_dir = f"output/{caso_nome}"
     os.makedirs(saida_dir, exist_ok=True)
 
     pontos = carregar_pontos(entrada_path)
     adjacencias = carregar_adjacencias(adjacencia_path, pontos)
-   
+    total_carga = somar_cargas(pontos)
+
     # parâmetros
-    num_veiculos = 2
     capacidade_maxima = 5
+    num_veiculos = math.ceil(total_carga / capacidade_maxima)
     
     start_time = time.time()
 
@@ -53,7 +55,7 @@ def main():
     # plotar as rotas geradas
     plotar_pontos(pontos, melhor_solucao, adjacencias=adjacencias, salvar_em=saida_dir)
 
-    with open(os.path.join(saida_dir, "resultados.txt"), "w") as f:
+    with open(os.path.join(saida_dir, "resumo.txt"), "w") as f:
         f.write(f"Custo total das rotas: {custo:.2f}\n")
         for i, rota in enumerate(melhor_solucao):
             distancia = calcular_distancia_total(rota)

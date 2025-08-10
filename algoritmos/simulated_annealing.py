@@ -8,11 +8,11 @@ def simulated_annealing(pontos, num_veiculos, capacidade_maxima,
                         adjacencias=None):
     # Calcula temperatura inicial baseada no custo médio de soluções aleatórias
     if temperatura_inicial is None:
-        custos = [calcular_custo(gerar_solucao_inicial(pontos, num_veiculos), capacidade_maxima, adjacencias)
+        custos = [calcular_custo(gerar_solucao_inicial_valida(pontos, num_veiculos), capacidade_maxima, adjacencias)
            for _ in range(100)]
         temperatura_inicial = 0.1 * sum(custos)/len(custos)
-        
-    solucao = gerar_solucao_inicial(pontos, num_veiculos)
+
+    solucao = gerar_solucao_inicial_valida(pontos, num_veiculos, capacidade_maxima)
     melhor_solucao = copy.deepcopy(solucao)
     melhor_custo = calcular_custo(solucao, capacidade_maxima, adjacencias)
     T = temperatura_inicial
@@ -26,6 +26,7 @@ def simulated_annealing(pontos, num_veiculos, capacidade_maxima,
         )
         if not valido:
             continue 
+        
         custo_vizinho = calcular_custo(vizinho, capacidade_maxima, adjacencias)
         delta = custo_vizinho - melhor_custo
 
@@ -39,10 +40,30 @@ def simulated_annealing(pontos, num_veiculos, capacidade_maxima,
 
     return melhor_solucao, melhor_custo
 
-def gerar_solucao_inicial(pontos, num_veiculos):
+def gerar_solucao_inicial_valida(pontos, num_veiculos, capacidade_maxima):
     pontos = copy.deepcopy(pontos)
     random.shuffle(pontos)
-    return [pontos[i::num_veiculos] for i in range(num_veiculos)]
+
+    rotas = [[] for _ in range(num_veiculos)]
+    cargas = [0] * num_veiculos
+
+    for p in pontos:
+        # tenta colocar no primeiro veículo que tenha espaço
+        colocado = False
+        for i in range(num_veiculos):
+            if cargas[i] + p['carga'] <= capacidade_maxima:
+                rotas[i].append(p)
+                cargas[i] += p['carga']
+                colocado = True
+                break
+        # se não couber em nenhum, força no menos carregado (depois algoritmo ajusta)
+        if not colocado:
+            idx_min = min(range(num_veiculos), key=lambda i: cargas[i])
+            rotas[idx_min].append(p)
+            cargas[idx_min] += p['carga']
+
+    return rotas
+
 
 def gerar_vizinho(solucao, adjacencias, capacidade_maxima):
     vizinho = [rota.copy() for rota in solucao]
@@ -53,6 +74,7 @@ def gerar_vizinho(solucao, adjacencias, capacidade_maxima):
     ]
     if not rotas_validas:
         return solucao
+    
     i_rota = random.randrange(len(rotas_validas))
     rota = vizinho[i_rota]
 

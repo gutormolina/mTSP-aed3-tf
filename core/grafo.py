@@ -1,13 +1,15 @@
 import matplotlib.pyplot as plt
 import math
 import os
+import csv
+import heapq
 
 def carregar_pontos(path):
+    pontos = []
     with open(path, 'r') as f:
-        linhas = f.readlines()[1:]  # Pula o cabeçalho
-        pontos = []
-        for linha in linhas:
-            id_p, x, y, carga = linha.strip().split()
+        leitor = csv.reader(f)
+        next(leitor)  # pula o cabeçalho
+        for id_p, x, y, carga in leitor:
             pontos.append({
                 'id': int(id_p),
                 'x': float(x),
@@ -17,31 +19,70 @@ def carregar_pontos(path):
     return pontos
 
 def carregar_adjacencias(path, pontos):
-    pontos_dict = {p['id']: p for p in pontos}
     adj = {}
+    pontos_dict = {p['id']: p for p in pontos}
+    
     with open(path, 'r') as f:
-        for linha in f.readlines()[1:]:  # Pula cabeçalho
-            a, b = map(int, linha.strip().split())
+        leitor = csv.reader(f)
+        next(leitor)  # pula o cabeçalho
+        
+        for from_id, to_id in leitor:
+            a, b = int(from_id), int(to_id)
             p_a, p_b = pontos_dict[a], pontos_dict[b]
+            
+            # Calcula distância euclidiana
             dx = p_b['x'] - p_a['x']
             dy = p_b['y'] - p_a['y']
-            dist = math.sqrt(dx*dx + dy*dy)
+            dist = math.sqrt(dx**2 + dy**2)
+            
+            # Adiciona arestas (grafo não-direcionado)
             adj.setdefault(a, {})[b] = dist
-            adj.setdefault(b, {})[a] = dist  # Grafo não-direcionado
+            adj.setdefault(b, {})[a] = dist
+    
     return adj
 
+def somar_cargas(pontos):
+    return sum(ponto['carga'] for ponto in pontos)
+
+def reconstruir_caminho(grafo, inicio, fim):
+    """Reconstrói o caminho mais curto entre dois nós usando Dijkstra."""
+    fila = [(0, inicio, [inicio])]
+    visitados = set()
+
+    while fila:
+        custo, atual, caminho = heapq.heappop(fila)
+
+        if atual == fim:
+            return caminho
+
+        if atual in visitados:
+            continue
+        visitados.add(atual)
+
+        for vizinho, peso in grafo[atual].items():
+            if vizinho not in visitados:
+                heapq.heappush(fila, (custo + peso, vizinho, caminho + [vizinho]))
+
+    return []  # sem caminho
 
 def plotar_pontos(pontos, rotas=None, adjacencias=None, salvar_em=None):
 
     plt.figure(figsize=(8, 6))
 
+    pontos_dict = {p['id']: p for p in pontos}
+
     # Desenha o grafo de ruas
     if adjacencias:
         for a, vizinhos in adjacencias.items():
-            p_a = next(p for p in pontos if p['id'] == a)
+            p_a = pontos_dict[a]
             for b in vizinhos:
-                p_b = next(p for p in pontos if p['id'] == b)
-                plt.plot([p_a['x'], p_b['x']], [p_a['y'], p_b['y']], color='lightgray', linestyle='-', linewidth=2)
+                p_b = pontos_dict[b]
+                plt.plot(
+                    [p_a['x'], p_b['x']], 
+                    [p_a['y'], p_b['y']], 
+                    color='lightgray', 
+                    linestyle='-', 
+                    linewidth=2)
 
     # Pontos
     for ponto in pontos:
@@ -49,12 +90,23 @@ def plotar_pontos(pontos, rotas=None, adjacencias=None, salvar_em=None):
         plt.text(ponto['x'], ponto['y'], str(ponto['id']), fontsize=9)
 
     # Rotas
-    if rotas:
+    if rotas and adjacencias:
         cores = ['red', 'green', 'orange', 'purple']
+
         for i, rota in enumerate(rotas):
-            xs = [p['x'] for p in rota]
-            ys = [p['y'] for p in rota]
-            plt.plot(xs, ys, color=cores[i % len(cores)], linestyle='--', linewidth=2, marker='o')
+            cor = cores[i % len(cores)]
+
+            for j in range(len(rota) - 1):
+                inicio = rota[j]['id']
+                fim = rota[j+1]['id']
+
+                caminho_ids = reconstruir_caminho(adjacencias, inicio, fim)
+
+                # Transforma IDs em coordenadas
+                xs = [pontos_dict[n]['x'] for n in caminho_ids]
+                ys = [pontos_dict[n]['y'] for n in caminho_ids]
+
+                plt.plot(xs, ys, color=cor, linestyle='--', linewidth=2, marker='o')
 
     plt.title('Pontos de Coleta e Rotas')
     plt.grid()

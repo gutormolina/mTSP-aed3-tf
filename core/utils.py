@@ -10,8 +10,7 @@ def calcular_distancia_total(rota):
     return distancia
 
 def dijkstra(grafo, inicio, fim):
-    fila = []
-    heapq.heappush(fila, (0, inicio))
+    fila = [(0, inicio)]
     distancias = {no: float('inf') for no in grafo}
     distancias[inicio] = 0
 
@@ -30,13 +29,12 @@ def dijkstra(grafo, inicio, fim):
                 distancias[vizinho] = nova_dist
                 heapq.heappush(fila, (nova_dist, vizinho))
 
-    return float('inf')  # caminho não encontrado
+    return float('inf')  # Sem caminho possível
 
 def calcular_custo(solucao, capacidade_maxima, grafo):
     custo_total = 0
 
     for rota in solucao:
-
         for i in range(len(rota) - 1):
             origem = rota[i]['id']
             destino = rota[i+1]['id']
