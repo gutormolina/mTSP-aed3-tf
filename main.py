@@ -33,19 +33,23 @@ def main():
     print(f"\nOtimizando rotas para {len(pontos)} pontos com {num_veiculos} veículos...")
     print(f"Algoritmo selecionado: {'Simulated Annealing' if args.algoritmo == 'sa' else 'Clarke-Wright'}")
 
+    deposito = next((p for p in pontos if p['id'] == 0), None)
+    if not deposito:
+        raise ValueError("Arquivo CSV não contém um depósito (ponto com id=0)")
+    
     if args.algoritmo == 'sa':
-        melhor_solucao, custo = simulated_annealing(
+        solucao, custo = simulated_annealing(
             pontos, num_veiculos, capacidade_maxima,
             temperatura_inicial=1000, taxa_resfriamento=0.95, iter_max=10000,
-            adjacencias=adjacencias
+            adjacencias=adjacencias, deposito=deposito
         )
     elif args.algoritmo == 'cw':
-        melhor_solucao, custo = clarke_wright(pontos, num_veiculos, capacidade_maxima, adjacencias)
+        solucao, custo = clarke_wright(pontos, num_veiculos, capacidade_maxima, adjacencias)
    
             
     print(f"Custo total das rotas: {custo:.2f}")
 
-    for i, rota in enumerate(melhor_solucao):
+    for i, rota in enumerate(solucao):
         distancia = calcular_distancia_total(rota)
         carga = sum(p['carga'] for p in rota)
         print(f"  Caminhão {i+1}: {len(rota)} pontos | Distância = {distancia:.2f} | Carga = {carga}/{capacidade_maxima}")
@@ -53,11 +57,11 @@ def main():
     print(f"\nTempo de execução: {time.time()-start_time:.2f} segundos")
     
     # plotar as rotas geradas
-    plotar_pontos(pontos, melhor_solucao, adjacencias=adjacencias, salvar_em=saida_dir)
+    plotar_pontos(pontos, solucao, adjacencias=adjacencias, salvar_em=saida_dir)
 
     with open(os.path.join(saida_dir, "resumo.txt"), "w") as f:
         f.write(f"Custo total das rotas: {custo:.2f}\n")
-        for i, rota in enumerate(melhor_solucao):
+        for i, rota in enumerate(solucao):
             distancia = calcular_distancia_total(rota)
             carga = sum(p['carga'] for p in rota)
             f.write(f"  Caminhão {i+1}: {len(rota)} pontos | Distância = {distancia:.2f} | Carga = {carga}\n")

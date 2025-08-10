@@ -5,14 +5,14 @@ from core.utils import calcular_custo, rota_valida
 
 def simulated_annealing(pontos, num_veiculos, capacidade_maxima,
                         temperatura_inicial=None, taxa_resfriamento=0.95, iter_max=10000,
-                        adjacencias=None):
+                        adjacencias=None, deposito=None):
     # Calcula temperatura inicial baseada no custo médio de soluções aleatórias
     if temperatura_inicial is None:
-        custos = [calcular_custo(gerar_solucao_inicial_valida(pontos, num_veiculos), capacidade_maxima, adjacencias)
+        custos = [calcular_custo(gerar_solucao_inicial_valida(pontos, num_veiculos, capacidade_maxima, deposito), capacidade_maxima, adjacencias)
            for _ in range(100)]
         temperatura_inicial = 0.1 * sum(custos)/len(custos)
 
-    solucao = gerar_solucao_inicial_valida(pontos, num_veiculos, capacidade_maxima)
+    solucao = gerar_solucao_inicial_valida(pontos, num_veiculos, capacidade_maxima, deposito)
     melhor_solucao = copy.deepcopy(solucao)
     melhor_custo = calcular_custo(solucao, capacidade_maxima, adjacencias)
     T = temperatura_inicial
@@ -40,15 +40,23 @@ def simulated_annealing(pontos, num_veiculos, capacidade_maxima,
 
     return melhor_solucao, melhor_custo
 
-def gerar_solucao_inicial_valida(pontos, num_veiculos, capacidade_maxima):
+def gerar_solucao_inicial_valida(pontos, num_veiculos, capacidade_maxima, deposito=None):
     pontos = copy.deepcopy(pontos)
+    if deposito:  # Remove o depósito da lista de pontos (se já estiver incluso)
+        pontos = [p for p in pontos if p['id'] != deposito['id']]
+    
     random.shuffle(pontos)
-
-    rotas = [[] for _ in range(num_veiculos)]
+    rotas = []
+    
+    for _ in range(num_veiculos):
+        rota = []
+        if deposito:
+            rota.append(deposito)  # Inicia no depósito
+        rotas.append(rota)
+    
     cargas = [0] * num_veiculos
-
+    
     for p in pontos:
-        # tenta colocar no primeiro veículo que tenha espaço
         colocado = False
         for i in range(num_veiculos):
             if cargas[i] + p['carga'] <= capacidade_maxima:
@@ -56,12 +64,16 @@ def gerar_solucao_inicial_valida(pontos, num_veiculos, capacidade_maxima):
                 cargas[i] += p['carga']
                 colocado = True
                 break
-        # se não couber em nenhum, força no menos carregado (depois algoritmo ajusta)
+        
         if not colocado:
             idx_min = min(range(num_veiculos), key=lambda i: cargas[i])
             rotas[idx_min].append(p)
             cargas[idx_min] += p['carga']
-
+    
+    if deposito:  # Adiciona depósito no final de cada rota
+        for rota in rotas:
+            rota.append(deposito)
+    
     return rotas
 
 
