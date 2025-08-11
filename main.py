@@ -51,7 +51,7 @@ def main():
         )
 
     elif args.algoritmo == 'cw':
-        solucao, custo = clarke_wright(pontos, num_veiculos, capacidade_maxima, adjacencias)
+        solucao, custo = clarke_wright(pontos, num_veiculos, capacidade_maxima, adjacencias, deposito)
 
     elif args.algoritmo == 'bf':
         solucao, custo = brute_force(pontos, num_veiculos, capacidade_maxima, adjacencias, deposito)
