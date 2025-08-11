@@ -47,6 +47,6 @@ def calcular_custo(solucao, capacidade_maxima, grafo):
 
 def rota_valida(rota, adjacencias):
     for i in range(len(rota) - 1):
-        if rota[i+1]['id'] not in adjacencias.get(rota[i]['id'], {}):
+        if dijkstra(adjacencias, rota[i]['id'], rota[i+1]['id']) == float('inf'):
             return False
     return True

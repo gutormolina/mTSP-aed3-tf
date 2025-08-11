@@ -41,6 +41,66 @@ def carregar_adjacencias(path, pontos):
     
     return adj
 
+def detectar_componentes(grafo):
+    visitados = set()
+    componentes = []
+
+    for nodo in grafo.keys():
+        if nodo not in visitados:
+            fila = [nodo]
+            comp = set()
+            while fila:
+                atual = fila.pop()
+                if atual not in visitados:
+                    visitados.add(atual)
+                    comp.add(atual)
+                    fila.extend(grafo.get(atual, {}).keys())
+            componentes.append(comp)
+    return componentes
+
+def componente_do_deposito(componentes, deposito_id=0):
+    for comp in componentes:
+        if deposito_id in comp:
+            return comp
+    return None
+
+def conectar_componentes(grafo, pontos, deposito_id=0):
+    import math
+
+    componentes = detectar_componentes(grafo)
+    comp_deposito = componente_do_deposito(componentes, deposito_id)
+
+    if len(componentes) <= 1:
+        return grafo
+
+    pontos_dict = {p['id']: p for p in pontos}
+
+    for comp in componentes:
+        if comp == comp_deposito:
+            continue
+
+        menor_dist = float('inf')
+        melhor_aresta = None
+
+        for u in comp_deposito:
+            for v in comp:
+                p_u = pontos_dict[u]
+                p_v = pontos_dict[v]
+                dx = p_v['x'] - p_u['x']
+                dy = p_v['y'] - p_u['y']
+                dist = math.sqrt(dx*dx + dy*dy)
+                if dist < menor_dist:
+                    menor_dist = dist
+                    melhor_aresta = (u, v, dist)
+
+        u, v, dist = melhor_aresta
+        grafo.setdefault(u, {})[v] = dist
+        grafo.setdefault(v, {})[u] = dist
+
+        comp_deposito.update(comp)
+
+    return grafo
+
 def somar_cargas(pontos):
     return sum(ponto['carga'] for ponto in pontos)
 

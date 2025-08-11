@@ -78,33 +78,93 @@ def gerar_solucao_inicial_valida(pontos, num_veiculos, capacidade_maxima, deposi
 
 
 def gerar_vizinho(solucao, adjacencias, capacidade_maxima):
-    vizinho = [rota.copy() for rota in solucao]
+    vizinho = copy.deepcopy(solucao)
 
-    # escolhe uma rota aleatória que tenha pelo menos 2 pontos
-    rotas_validas = [(i, rota) for i, rota in enumerate(vizinho)
-        if sum(p['carga'] for p in rota) <= capacidade_maxima and len(rota) >= 2
-    ]
-    if not rotas_validas:
+    n_rotas = len(vizinho)
+    if n_rotas == 0:
         return solucao
-    
-    i_rota = random.randrange(len(rotas_validas))
-    rota = vizinho[i_rota]
 
-    # tenta encontrar um par de índices consecutivos na rota que sejam vizinhos no grafo
-    pares_consecutivos = [i for i in range(len(rota)-1)
-                         if rota[i+1]['id'] in adjacencias.get(rota[i]['id'], {})]
+    ops = ['2opt', 'swap', 'move']
+    random.shuffle(ops)
 
-    if not pares_consecutivos:
-        return solucao  # não há pares consecutivos vizinhos para trocar
+    def carga_rota(rota):
+        return sum(p['carga'] for p in rota)
 
-    # escolhe um par aleatório para trocar
-    i = random.choice(pares_consecutivos)
+    for op in ops:
+        rotas_com_interior = [i for i, r in enumerate(vizinho) if len(r) >= 3]
+        if op == '2opt':
+            if not rotas_com_interior:
+                continue
+            idx_rota = random.choice(rotas_com_interior)
+            rota = vizinho[idx_rota]
 
-    # troca os dois pontos na rota
-    rota[i], rota[i+1] = rota[i+1], rota[i]
+            if len(rota) - 2 < 2:
+                continue  # não há subsequência suficiente para 2-opt
+            i = random.randint(1, len(rota) - 3)
+            j = random.randint(i + 1, len(rota) - 2)
 
-    # garante que a rota ainda é válida após a troca (se não for, retorna solução antiga)
-    if not rota_valida(rota, adjacencias):
-        return solucao  # rejeita vizinho inválido
+            # aplica 2-opt 
+            rota[i:j+1] = list(reversed(rota[i:j+1]))
 
-    return vizinho
+            # valida rota
+            if rota_valida(rota, adjacencias) and carga_rota(rota) <= capacidade_maxima:
+                return vizinho
+            else:
+                # desfazer alteração para tentar outra operação
+                vizinho = copy.deepcopy(solucao)
+                continue
+
+        elif op == 'swap':
+            if len(rotas_com_interior) < 2:
+                continue
+            r1, r2 = random.sample(rotas_com_interior, 2)
+            rota1, rota2 = vizinho[r1], vizinho[r2]
+
+            # índices interiores
+            i = random.randint(1, len(rota1) - 2)
+            j = random.randint(1, len(rota2) - 2)
+
+            # swap
+            rota1[i], rota2[j] = rota2[j], rota1[i]
+
+            # valida ambas as rotas (capacidade e adjacências)
+            if (rota_valida(rota1, adjacencias) and rota_valida(rota2, adjacencias)
+                and carga_rota(rota1) <= capacidade_maxima and carga_rota(rota2) <= capacidade_maxima):
+                return vizinho
+            else:
+                vizinho = copy.deepcopy(solucao)
+                continue
+
+        elif op == 'move':
+            if not rotas_com_interior or len(rotas_com_interior) < 1:
+                continue
+            # escolha de rota origem com interior
+            r_from = random.choice(rotas_com_interior)
+            # escolha de rota destino
+            possible_dest = [i for i in range(n_rotas) if i != r_from]
+            if not possible_dest:
+                continue
+            r_to = random.choice(possible_dest)
+
+            rota_from, rota_to = vizinho[r_from], vizinho[r_to]
+            if len(rota_from) < 3:
+                continue
+
+            # escolhe índice interior na origem e posição de inserção na destino
+            idx_from = random.randint(1, len(rota_from) - 2)
+            insert_pos = random.randint(1, len(rota_to) - 1)
+
+            ponto = rota_from.pop(idx_from)
+            rota_to.insert(insert_pos, ponto)
+
+            # valida ambas as rotas
+            if (rota_valida(rota_from, adjacencias) and rota_valida(rota_to, adjacencias)
+                and carga_rota(rota_from) <= capacidade_maxima and carga_rota(rota_to) <= capacidade_maxima):
+                # sucesso
+                return vizinho
+            else:
+                # desfazer (reconstruir da solução original)
+                vizinho = copy.deepcopy(solucao)
+                continue
+
+    return solucao

@@ -1,6 +1,7 @@
-from core.grafo import carregar_pontos, plotar_pontos, carregar_adjacencias, somar_cargas, reconstruir_caminho
+from core.grafo import carregar_pontos, plotar_pontos, carregar_adjacencias, somar_cargas, conectar_componentes
 from algoritmos.simulated_annealing import simulated_annealing
 from algoritmos.clarke_wright import clarke_wright
+from algoritmos.brute_force import brute_force
 from core.utils import calcular_distancia_total
 import os
 import time
@@ -10,8 +11,8 @@ import math
 def main():
     parser = argparse.ArgumentParser(description='Otimizador de Rotas de Coleta')
     parser.add_argument('caso', help='Nome do caso (ex: caso_01)')
-    parser.add_argument('-a', '--algoritmo', choices=['sa', 'cw', 'fb'], 
-                       help='Algoritmo: sa (Simulated Annealing), cw (Clarke-Wright)')
+    parser.add_argument('-a', '--algoritmo', choices=['sa', 'cw', 'bf'], 
+                       help='Algoritmo: sa (Simulated Annealing), cw (Clarke-Wright), bf (Brute Force)')
     args = parser.parse_args()
   
     caso_nome = args.caso
@@ -21,21 +22,26 @@ def main():
     os.makedirs(saida_dir, exist_ok=True)
 
     pontos = carregar_pontos(entrada_path)
+
+    deposito = next((p for p in pontos if p['id'] == 0), None)
+    if not deposito:
+        raise ValueError("Arquivo CSV não contém um depósito (ponto com id=0)")
+    
     adjacencias = carregar_adjacencias(adjacencia_path, pontos)
+    adjacencias = conectar_componentes(adjacencias, pontos, deposito['id'])
     total_carga = somar_cargas(pontos)
 
     # parâmetros
-    capacidade_maxima = 5
+    capacidade_maxima = 4
     num_veiculos = math.ceil(total_carga / capacidade_maxima)
     
     start_time = time.time()
 
     print(f"\nOtimizando rotas para {len(pontos)} pontos com {num_veiculos} veículos...")
-    print(f"Algoritmo selecionado: {'Simulated Annealing' if args.algoritmo == 'sa' else 'Clarke-Wright'}")
+    print(f"Algoritmo selecionado: {'Simulated Annealing' if args.algoritmo == 'sa' 
+                                    else 'Clarke-Wright' if args.algoritmo == 'cw' 
+                                    else 'Brute Force'}")
 
-    deposito = next((p for p in pontos if p['id'] == 0), None)
-    if not deposito:
-        raise ValueError("Arquivo CSV não contém um depósito (ponto com id=0)")
     
     if args.algoritmo == 'sa':
         solucao, custo = simulated_annealing(
@@ -43,10 +49,17 @@ def main():
             temperatura_inicial=1000, taxa_resfriamento=0.95, iter_max=10000,
             adjacencias=adjacencias, deposito=deposito
         )
+
     elif args.algoritmo == 'cw':
         solucao, custo = clarke_wright(pontos, num_veiculos, capacidade_maxima, adjacencias)
+
+    elif args.algoritmo == 'bf':
+        solucao, custo = brute_force(pontos, num_veiculos, capacidade_maxima, adjacencias, deposito)
    
-            
+    if solucao is None or custo == float('inf'):
+        print("Nenhuma solução encontrada para os parâmetros fornecidos.")
+        return        
+
     print(f"Custo total das rotas: {custo:.2f}")
 
     for i, rota in enumerate(solucao):
