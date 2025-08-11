@@ -29,7 +29,7 @@ def dijkstra(grafo, inicio, fim):
                 distancias[vizinho] = nova_dist
                 heapq.heappush(fila, (nova_dist, vizinho))
 
-    return float('inf')  # Sem caminho possível
+    return float('inf')  # sem caminho possível
 
 def calcular_custo(solucao, capacidade_maxima, grafo):
     custo_total = 0

@@ -30,12 +30,12 @@ def carregar_adjacencias(path, pontos):
             a, b = int(from_id), int(to_id)
             p_a, p_b = pontos_dict[a], pontos_dict[b]
             
-            # Calcula distância euclidiana
+            # calcula distância euclidiana
             dx = p_b['x'] - p_a['x']
             dy = p_b['y'] - p_a['y']
             dist = math.sqrt(dx**2 + dy**2)
             
-            # Adiciona arestas (grafo não-direcionado)
+            # adiciona arestas (grafo não-direcionado)
             adj.setdefault(a, {})[b] = dist
             adj.setdefault(b, {})[a] = dist
     
@@ -105,7 +105,6 @@ def somar_cargas(pontos):
     return sum(ponto['carga'] for ponto in pontos)
 
 def reconstruir_caminho(grafo, inicio, fim):
-    """Reconstrói o caminho mais curto entre dois nós usando Dijkstra."""
     fila = [(0, inicio, [inicio])]
     visitados = set()
 
@@ -123,13 +122,13 @@ def reconstruir_caminho(grafo, inicio, fim):
             if vizinho not in visitados:
                 heapq.heappush(fila, (custo + peso, vizinho, caminho + [vizinho]))
 
-    return []  # sem caminho
+    return []
 
 def plotar_pontos(pontos, rotas=None, adjacencias=None, salvar_em=None):
     plt.figure(figsize=(10, 8))
     pontos_dict = {p['id']: p for p in pontos}
     
-    # Desenha o grafo de ruas (fundo cinza)
+    # desenha o grafo de ruas
     if adjacencias:
         for a, vizinhos in adjacencias.items():
             p_a = pontos_dict[a]
@@ -138,7 +137,7 @@ def plotar_pontos(pontos, rotas=None, adjacencias=None, salvar_em=None):
                 plt.plot([p_a['x'], p_b['x']], [p_a['y'], p_b['y']], 
                          color='lightgray', linestyle='-', linewidth=1, zorder=1)
 
-    # Desenha os pontos
+    # desenha os pontos
     for p in pontos:
         if p['id'] == 0:  # Depósito
             plt.scatter(p['x'], p['y'], color='gold', s=150, marker='s', edgecolors='black', zorder=4)
@@ -147,10 +146,10 @@ def plotar_pontos(pontos, rotas=None, adjacencias=None, salvar_em=None):
         plt.text(p['x'], p['y'], str(p['id']), 
                  fontsize=8, ha='center', va='center', zorder=5)
 
-    # Desenha as rotas com offset
+    # desenha as rotas com offset
     if rotas and adjacencias:
         cores = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
-        offset_step = 0.3  # Valor do deslocamento
+        offset_step = 0.3
         
         for i, rota in enumerate(rotas):
             cor = cores[i % len(cores)]
@@ -161,18 +160,16 @@ def plotar_pontos(pontos, rotas=None, adjacencias=None, salvar_em=None):
                 inicio = rota[j]['id']
                 fim = rota[j+1]['id']
                 
-                # Pega o caminho completo entre os pontos
                 caminho_ids = reconstruir_caminho(adjacencias, inicio, fim)
                 
-                # Aplica offset
                 xs = [pontos_dict[n]['x'] + offset_x for n in caminho_ids]
                 ys = [pontos_dict[n]['y'] + offset_y for n in caminho_ids]
                 
-                # Desenha a rota
+                # desenha a rota
                 plt.plot(xs, ys, color=cor, linewidth=2.5, zorder=2,
                          label=f'Caminhão {i+1}' if j == 0 else "")
                 
-                # Setas de direção
+                # setas de direção
                 if len(xs) >= 2:
                     plt.arrow(xs[-2], ys[-2], (xs[-1]-xs[-2])*0.8, (ys[-1]-ys[-2])*0.8,
                               color=cor, width=0.2, length_includes_head=True, zorder=3)

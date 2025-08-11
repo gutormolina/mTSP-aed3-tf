@@ -6,7 +6,7 @@ from core.utils import calcular_custo, rota_valida
 def simulated_annealing(pontos, num_veiculos, capacidade_maxima,
                         temperatura_inicial=None, taxa_resfriamento=0.95, iter_max=10000,
                         adjacencias=None, deposito=None):
-    # Calcula temperatura inicial baseada no custo médio de soluções aleatórias
+    # calcula temperatura inicial baseada no custo médio de soluções aleatórias
     if temperatura_inicial is None:
         custos = [calcular_custo(gerar_solucao_inicial_valida(pontos, num_veiculos, capacidade_maxima, deposito), capacidade_maxima, adjacencias)
            for _ in range(100)]
@@ -42,7 +42,7 @@ def simulated_annealing(pontos, num_veiculos, capacidade_maxima,
 
 def gerar_solucao_inicial_valida(pontos, num_veiculos, capacidade_maxima, deposito=None):
     pontos = copy.deepcopy(pontos)
-    if deposito:  # Remove o depósito da lista de pontos (se já estiver incluso)
+    if deposito:  # remove o depósito da lista de pontos (se já estiver incluso)
         pontos = [p for p in pontos if p['id'] != deposito['id']]
     
     random.shuffle(pontos)
@@ -51,7 +51,7 @@ def gerar_solucao_inicial_valida(pontos, num_veiculos, capacidade_maxima, deposi
     for _ in range(num_veiculos):
         rota = []
         if deposito:
-            rota.append(deposito)  # Inicia no depósito
+            rota.append(deposito)  # inicia no depósito
         rotas.append(rota)
     
     cargas = [0] * num_veiculos
@@ -70,7 +70,7 @@ def gerar_solucao_inicial_valida(pontos, num_veiculos, capacidade_maxima, deposi
             rotas[idx_min].append(p)
             cargas[idx_min] += p['carga']
     
-    if deposito:  # Adiciona depósito no final de cada rota
+    if deposito:  # adiciona depósito no final de cada rota
         for rota in rotas:
             rota.append(deposito)
     

@@ -59,7 +59,6 @@ def brute_force(pontos, num_veiculos, capacidade_maxima, adjacencias, deposito):
                         rota = [deposito] + subrota + [deposito]
                         rotas.append(rota)
 
-            # garante que todos os pontos foram usados
             if not valido:
                 continue
 
