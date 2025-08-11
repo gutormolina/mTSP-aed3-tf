@@ -1,4 +1,4 @@
-from core.grafo import carregar_pontos, plotar_pontos, carregar_adjacencias, somar_cargas
+from core.grafo import carregar_pontos, plotar_pontos, carregar_adjacencias, somar_cargas, reconstruir_caminho
 from algoritmos.simulated_annealing import simulated_annealing
 from algoritmos.clarke_wright import clarke_wright
 from core.utils import calcular_distancia_total
@@ -61,10 +61,21 @@ def main():
 
     with open(os.path.join(saida_dir, "resumo.txt"), "w") as f:
         f.write(f"Custo total das rotas: {custo:.2f}\n")
+        f.write(f"Número de veículos: {len(solucao)}\n")
+        f.write(f"Capacidade máxima por veículo: {capacidade_maxima}\n\n")
+
         for i, rota in enumerate(solucao):
-            distancia = calcular_distancia_total(rota)
-            carga = sum(p['carga'] for p in rota)
-            f.write(f"  Caminhão {i+1}: {len(rota)} pontos | Distância = {distancia:.2f} | Carga = {carga}\n")
+            carga_acumulada = 0
+            f.write(f"=== Caminhão {i+1} ===\n")
+            f.write(f"Pontos visitados: {len(rota)}\n")
+            f.write(f"Distância total: {calcular_distancia_total(rota):.2f}\n")
+            f.write("Trajeto:\n")
+
+            for j, ponto in enumerate(rota):
+                carga_acumulada += ponto['carga']
+                f.write(f"  Ponto {ponto['id']} (Carga: {ponto['carga']} | Acumulado: {carga_acumulada}/{capacidade_maxima})\n")
+
+            f.write("\n")
 
 if __name__ == "__main__":
 	main()
