@@ -15,7 +15,7 @@ A solução utiliza o algoritmo **Simulated Annealing** para encontrar rotas oti
 mTSP-aed3-tf/
 ├── algoritmos/
 │   └── brute_force.py             # Algoritmo força-bruta.
-│   └── clarke_wright              # Algoritmo com heurística greedy.
+│   └── clarke_wright.py           # Algoritmo com heurística greedy.
 │   └── simulated_annealing.py     # Algoritmo principal (probabilístico).
 ├── core/
 │   ├── grafo.py                   # Funções de grafo e visualização
