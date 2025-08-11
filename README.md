@@ -14,7 +14,9 @@ A solução utiliza o algoritmo **Simulated Annealing** para encontrar rotas oti
 ```
 mTSP-aed3-tf/
 ├── algoritmos/
-│   └── simulated_annealing.py     # Algoritmo principal
+│   └── brute_force.py             # Algoritmo força-bruta.
+│   └── clarke_wright              # Algoritmo com heurística greedy.
+│   └── simulated_annealing.py     # Algoritmo principal (probabilístico).
 ├── core/
 │   ├── grafo.py                   # Funções de grafo e visualização
 │   ├── utils.py                   # Funções auxiliares (distância, custo, etc.)
@@ -64,7 +66,7 @@ python main.py <caso> -a <algoritmo>
 
 ## ⚙️ Parâmetros
 
-Os principais parâmetros do algoritmo podem ser ajustados diretamente no `main.py`:
+Os principais parâmetros do algoritmo *simulated annealing* podem ser ajustados diretamente no `main.py`:
 
 ```python
 num_veiculos = 2
@@ -73,16 +75,6 @@ temperatura_inicial = 1000
 taxa_resfriamento = 0.95
 iter_max = 10000
 ```
-
----
-
-## 🛠️ Tecnologias Utilizadas
-
-- Python 3.12+
-- Pandas
-- Matplotlib
-- Algoritmo probabilístico Simulated Annealing
-- Estrutura de grafos com Dijkstra para rotas reais
 
 ---
 
