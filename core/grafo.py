@@ -148,8 +148,15 @@ def plotar_pontos(pontos, rotas=None, adjacencias=None, salvar_em=None):
 
     # desenha as rotas com offset
     if rotas and adjacencias:
-        cores = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
-        offset_step = 0.3
+        cores = ['#1f77b4', 
+                 '#ff7f0e', 
+                 '#2ca02c', 
+                 '#d62728', 
+                 '#9467bd', 
+                 '#8c564b',
+                 '#17becf',
+                 '#e377c2']
+        offset_step = 0.05
         
         for i, rota in enumerate(rotas):
             cor = cores[i % len(cores)]
@@ -166,13 +173,17 @@ def plotar_pontos(pontos, rotas=None, adjacencias=None, salvar_em=None):
                 ys = [pontos_dict[n]['y'] + offset_y for n in caminho_ids]
                 
                 # desenha a rota
-                plt.plot(xs, ys, color=cor, linewidth=2.5, zorder=2,
+                plt.plot(xs, ys, color=cor, linewidth=1.5, zorder=2,
                          label=f'Caminhão {i+1}' if j == 0 else "")
                 
                 # setas de direção
                 if len(xs) >= 2:
-                    plt.arrow(xs[-2], ys[-2], (xs[-1]-xs[-2])*0.8, (ys[-1]-ys[-2])*0.8,
-                              color=cor, width=0.2, length_includes_head=True, zorder=3)
+                    plt.annotate("",
+                        xy=(xs[-1], ys[-1]),
+                        xytext=(xs[-2], ys[-2]),
+                        arrowprops=dict(arrowstyle="->", color=cor, lw=1.5),
+                        zorder=3
+                    )
 
     plt.title('Rotas de Coleta de Lixo', fontsize=14)
     plt.legend(loc='best')
